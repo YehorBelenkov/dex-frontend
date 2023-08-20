@@ -93,29 +93,47 @@ function Swap(props) {
       setPrices(res.data)
   }
 
-  async function fetchDexSwap(){
-
-    const allowance = await axios.get(`https://api.1inch.io/v5.2/1/approve/allowance?tokenAddress=${tokenOne.address}&walletAddress=${address}`)
+  async function fetchDexSwap() {
+    try {
+      const allowanceResponse = await axios.get(`/fetchAllowance`, {
+        params: {
+          tokenOne: tokenOne.address,
+          address: address,
+        },
+      });
   
-    if(allowance.data.allowance === "0"){
-
-      const approve = await axios.get(`https://api.1inch.io/v5.2/1/approve/transaction?tokenAddress=${tokenOne.address}`)
-
-      setTxDetails(approve.data);
-      console.log("not approved")
-      return
-
+      if (allowanceResponse.data.allowance === "0") {
+        const approveResponse = await axios.get(`/fetchApprove`, {
+          params: {
+            tokenOne: tokenOne.address,
+          },
+        });
+  
+        setTxDetails(approveResponse.data.approveTx);
+        console.log("not approved");
+        return;
+      }
+  
+      const swapResponse = await axios.get(`/fetchSwap`, {
+        params: {
+          tokenOne: tokenOne.address,
+          tokenTwo: tokenTwo.address,
+          tokenOneAmount: tokenOneAmount,
+          address: address,
+          slippage: slippage,
+        },
+      });
+  
+      const decimals = Number(`1E${tokenTwo.decimals}`);
+      setTokenTwoAmount(
+        (Number(swapResponse.data.swapTx.toTokenAmount) / decimals).toFixed(2)
+      );
+  
+      setTxDetails(swapResponse.data.swapTx.tx);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      // Handle error here
     }
-
-    const tx = await axios.get(
-      `https://api.1inch.io/v5.2/1/swap?fromTokenAddress=${tokenOne.address}&toTokenAddress=${tokenTwo.address}&amount=${tokenOneAmount.padEnd(tokenOne.decimals+tokenOneAmount.length, '0')}&fromAddress=${address}&slippage=${slippage}`
-    )
-
-    let decimals = Number(`1E${tokenTwo.decimals}`)
-    setTokenTwoAmount((Number(tx.data.toTokenAmount)/decimals).toFixed(2));
-
-    setTxDetails(tx.data.tx);
-  
   }
 
 
