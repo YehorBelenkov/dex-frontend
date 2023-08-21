@@ -95,11 +95,11 @@ function Swap(props) {
 
   async function fetchDexSwap(){
                                        
-    const allowance = await axios.get(`https://api.1inch.io/v5.0/1/approve/allowance?tokenAddress=${tokenOne.address}&walletAddress=${address}`)
+    const allowance = await axios.get(`https://api.1inch.dev/swap/v5.2/1/approve/allowance?tokenAddress=${tokenOne.address}&walletAddress=${address}`)
   
     if(allowance.data.allowance === "0"){
                                        
-      const approve = await axios.get(`https://api.1inch.io/v5.0/1/approve/transaction?tokenAddress=${tokenOne.address}`)
+      const approve = await axios.get(`https://api.1inch.dev/swap/v5.2/1/approve/transaction?tokenAddress=${tokenOne.address}`)
 
       setTxDetails(approve.data);
       console.log("not approved")
@@ -107,7 +107,9 @@ function Swap(props) {
 
     }
       
-    const tx = await axios.get(`https://api.1inch.io/v5.0/1/swap?fromTokenAddress=${tokenOne.address}&toTokenAddress=${tokenTwo.address}&amount=${tokenOneAmount.padEnd(tokenOne.decimals+tokenOneAmount.length, '0')}&fromAddress=${address}&slippage=${slippage}`)
+    const tx = await axios.get(
+      `https://api.1inch.dev/swap/v5.2/1/swap?src=${tokenOne.address}&dst=${tokenTwo.address}&amount=${tokenOneAmount.padEnd(tokenOne.decimals+tokenOneAmount.length, '0')}&from=${address}&slippage=${slippage}`
+    )
 
     let decimals = Number(`1E${tokenTwo.decimals}`)
     setTokenTwoAmount((Number(tx.data.toTokenAmount)/decimals).toFixed(2));
